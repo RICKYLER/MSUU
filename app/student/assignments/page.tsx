@@ -85,7 +85,13 @@ export default function StudentAssignmentsPage() {
                         <Upload className="h-4 w-4" />
                         Submit Assignment
                       </Button>
-                      <Button variant="outline">View Details</Button>
+                      {/* Navigate to the assignment details page for review/submission */}
+                      <Button
+                        variant="outline"
+                        onClick={() => router.push(`/student/assignments/${assignment.id}`)}
+                      >
+                        View Details
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
