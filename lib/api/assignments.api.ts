@@ -33,11 +33,6 @@ export async function getAssignmentById(assignmentId: string): Promise<Assignmen
   await new Promise((resolve) => setTimeout(resolve, 300))
   return mockAssignments.find((a) => a.id === assignmentId) || null
 }
-
-/**
- * Submit assignment
- * TODO: Replace with POST /api/assignments/:id/submit
- */
 export async function submitAssignment(assignmentId: string, studentId: string, content: string): Promise<Submission> {
   await new Promise((resolve) => setTimeout(resolve, 500))
 
@@ -45,20 +40,18 @@ export async function submitAssignment(assignmentId: string, studentId: string, 
     id: `sub-${Date.now()}`,
     assignmentId,
     studentId,
-    studentName: "Current Student",
-    submittedAt: new Date().toISOString(),
-    content,
-    grade: null,
-    feedback: null,
+    submittedAt: new Date(),
+    status: "submitted",
+    feedback: undefined,
+    grade: undefined,
   }
+
+  // For mock mode, append to in-memory list so subsequent fetches include it
+  mockSubmissions.push({ ...newSubmission })
 
   return newSubmission
 }
 
-/**
- * Get submissions for an assignment
- * TODO: Replace with GET /api/assignments/:id/submissions
- */
 export async function getAssignmentSubmissions(assignmentId: string): Promise<Submission[]> {
   await new Promise((resolve) => setTimeout(resolve, 300))
   return mockSubmissions.filter((s) => s.assignmentId === assignmentId)

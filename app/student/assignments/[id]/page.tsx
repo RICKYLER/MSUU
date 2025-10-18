@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { getAssignmentById, submitAssignment, getAssignmentSubmissions } from "@/lib/api/assignments.api"
 import { mockCourses } from "@/lib/mock-data"
 import { formatDistanceToNow, format } from "date-fns"
-import { FileText, Clock, Upload } from "lucide-react"
+import { FileText, Clock, Upload, Loader2, CheckCircle2 } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 
 export default function AssignmentDetailsPage() {
@@ -49,7 +49,12 @@ export default function AssignmentDetailsPage() {
   }, [router, assignmentId])
 
   if (loading || !assignment) {
-    return <div className="flex h-screen items-center justify-center">Loading...</div>
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+        <span>Loading assignment...</span>
+      </div>
+    )
   }
 
   const course = mockCourses.find((c) => c.id === assignment.courseId)
@@ -197,12 +202,16 @@ export default function AssignmentDetailsPage() {
                 )}
                 {fileLoading && (
                   <div className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                     <Progress value={uploadProgress} className="h-2 w-full" />
                     <span className="text-xs text-muted-foreground w-16 text-right">{uploadProgress}%</span>
                   </div>
                 )}
                 {!fileLoading && fileValid && (
-                  <p className="text-xs text-green-600">File loaded • Ready to submit</p>
+                  <p className="flex items-center gap-1 text-xs text-green-600">
+                    <CheckCircle2 className="h-4 w-4" />
+                    <span>File loaded • Ready to submit</span>
+                  </p>
                 )}
                 {fileError && <p className="text-xs text-destructive">{fileError}</p>}
               </div>
@@ -222,8 +231,17 @@ export default function AssignmentDetailsPage() {
                       : undefined
                   }
                 >
-                  <Upload className="h-4 w-4" />
-                  {submitting ? "Submitting..." : "Submit for Review"}
+                  {submitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Submitting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4" />
+                      <span>Submit for Review</span>
+                    </>
+                  )}
                 </Button>
                 {action === "submit" && (
                   <span className="text-xs text-muted-foreground">Attach your file and notes, then submit when ready.</span>
@@ -243,9 +261,9 @@ export default function AssignmentDetailsPage() {
                             Submitted {format(new Date(s.submittedAt), "MMM dd, yyyy h:mm a")} 
                             {s.status ? `• ${s.status}` : ""}
                           </span>
-                          {s.grade !== undefined && (
-                            <span className="font-medium">Grade: {s.grade}</span>
-                          )}
+                          <span className="font-medium">
+                            {s.grade !== undefined ? `Grade: ${s.grade}` : "Grade: pending"}
+                          </span>
                         </div>
                         {s.feedback && (
                           <p className="mt-1 text-muted-foreground">Feedback: {s.feedback}</p>
