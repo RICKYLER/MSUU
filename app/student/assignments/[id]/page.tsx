@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter, useParams } from "next/navigation"
+import { useRouter, useParams, useSearchParams } from "next/navigation"
 import { getCurrentUser } from "@/lib/auth"
 import { StudentSidebar } from "@/components/student-sidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -15,6 +15,8 @@ import { FileText, Clock, Upload } from "lucide-react"
 export default function AssignmentDetailsPage() {
   const router = useRouter()
   const params = useParams()
+  const search = useSearchParams()
+  const action = search.get("action")
   const assignmentId = Array.isArray(params?.id) ? params.id[0] : (params?.id as string)
 
   const [loading, setLoading] = useState(true)
@@ -22,6 +24,8 @@ export default function AssignmentDetailsPage() {
   const [assignment, setAssignment] = useState<any>(null)
   const [submissions, setSubmissions] = useState<any[]>([])
   const [reviewMessage, setReviewMessage] = useState("")
+  const [file, setFile] = useState<File | null>(null)
+  const [fileError, setFileError] = useState<string>("")
 
   useEffect(() => {
     const user = getCurrentUser()
@@ -50,11 +54,19 @@ export default function AssignmentDetailsPage() {
   async function handleQuickSubmit() {
     const user = getCurrentUser()
     if (!user?.id) return
+    if (!file) {
+      setFileError("Please attach a file before submitting.")
+      return
+    }
     setSubmitting(true)
     try {
-      await submitAssignment(assignment.id, user.id, reviewMessage || "Submitted for review")
+      // Simulate upload by reading file name and size
+      const note = `${reviewMessage || "Submitted for review"} (file: ${file.name}, ${file.size} bytes)`
+      await submitAssignment(assignment.id, user.id, note)
       const subs = await getAssignmentSubmissions(assignment.id)
       setSubmissions(subs)
+      setFile(null)
+      setFileError("")
     } finally {
       setSubmitting(false)
     }
@@ -114,11 +126,29 @@ export default function AssignmentDetailsPage() {
                 />
               </div>
 
+              {/* File upload */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Answer File</label>
+                <input
+                  type="file"
+                  className="w-full rounded border bg-background p-2 text-sm"
+                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  accept=".pdf,.doc,.docx,.txt,.md,.zip,.rar,.7z,.png,.jpg,.jpeg"
+                />
+                {file && (
+                  <p className="text-xs text-muted-foreground">Selected: {file.name} ({Math.round(file.size / 1024)} KB)</p>
+                )}
+                {fileError && <p className="text-xs text-destructive">{fileError}</p>}
+              </div>
+
               <div className="flex gap-2">
                 <Button className="gap-2" onClick={handleQuickSubmit} disabled={submitting}>
                   <Upload className="h-4 w-4" />
                   {submitting ? "Submitting..." : "Submit for Review"}
                 </Button>
+                {action === "submit" && (
+                  <span className="text-xs text-muted-foreground">You opened via Submit — attach your file and notes, then submit.</span>
+                )}
               </div>
 
               <div className="mt-6">

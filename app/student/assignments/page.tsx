@@ -81,7 +81,7 @@ export default function StudentAssignmentsPage() {
                     </div>
 
                     <div className="flex gap-2">
-                      <Button className="gap-2">
+                      <Button className="gap-2" onClick={() => router.push(`/student/assignments/${assignment.id}?action=submit`)}>
                         <Upload className="h-4 w-4" />
                         Submit Assignment
                       </Button>
