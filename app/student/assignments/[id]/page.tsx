@@ -21,6 +21,7 @@ export default function AssignmentDetailsPage() {
   const [submitting, setSubmitting] = useState(false)
   const [assignment, setAssignment] = useState<any>(null)
   const [submissions, setSubmissions] = useState<any[]>([])
+  const [reviewMessage, setReviewMessage] = useState("")
 
   useEffect(() => {
     const user = getCurrentUser()
@@ -51,7 +52,7 @@ export default function AssignmentDetailsPage() {
     if (!user?.id) return
     setSubmitting(true)
     try {
-      await submitAssignment(assignment.id, user.id, "Draft content for review")
+      await submitAssignment(assignment.id, user.id, reviewMessage || "Submitted for review")
       const subs = await getAssignmentSubmissions(assignment.id)
       setSubmissions(subs)
     } finally {
@@ -99,6 +100,18 @@ export default function AssignmentDetailsPage() {
                 <div className="text-muted-foreground">
                   <span>{format(assignment.dueDate, "MMMM dd, yyyy 'at' h:mm a")}</span>
                 </div>
+              </div>
+
+              {/* Review notes textarea */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Review Notes (optional)</label>
+                <textarea
+                  className="w-full rounded border bg-background p-2 text-sm"
+                  rows={4}
+                  placeholder="Add notes or a summary of your solution..."
+                  value={reviewMessage}
+                  onChange={(e) => setReviewMessage(e.target.value)}
+                />
               </div>
 
               <div className="flex gap-2">
