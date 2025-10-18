@@ -11,6 +11,7 @@ import { getAssignmentById, submitAssignment, getAssignmentSubmissions } from "@
 import { mockCourses } from "@/lib/mock-data"
 import { formatDistanceToNow, format } from "date-fns"
 import { FileText, Clock, Upload } from "lucide-react"
+import { Progress } from "@/components/ui/progress"
 
 export default function AssignmentDetailsPage() {
   const router = useRouter()
@@ -26,6 +27,9 @@ export default function AssignmentDetailsPage() {
   const [reviewMessage, setReviewMessage] = useState("")
   const [file, setFile] = useState<File | null>(null)
   const [fileError, setFileError] = useState<string>("")
+  const [fileLoading, setFileLoading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [fileValid, setFileValid] = useState(false)
 
   useEffect(() => {
     const user = getCurrentUser()
@@ -70,6 +74,59 @@ export default function AssignmentDetailsPage() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  // Handle file selection with loading and validations
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0] || null
+    setFile(f)
+    setFileError("")
+    setUploadProgress(0)
+    setFileValid(false)
+
+    if (!f) {
+      setFileLoading(false)
+      return
+    }
+
+    // Basic validations
+    const maxSize = 10 * 1024 * 1024 // 10 MB
+    if (f.size > maxSize) {
+      setFileError("File too large (max 10 MB)")
+      setFileLoading(false)
+      return
+    }
+    const ext = f.name.split(".").pop()?.toLowerCase()
+    const allowed = ["pdf", "doc", "docx", "txt", "md", "zip", "rar", "7z", "png", "jpg", "jpeg"]
+    if (!ext || !allowed.includes(ext)) {
+      setFileError("Unsupported file type")
+      setFileLoading(false)
+      return
+    }
+
+    // Read file to simulate pre-upload processing and show progress
+    const reader = new FileReader()
+    reader.onloadstart = () => {
+      setFileLoading(true)
+      setUploadProgress(0)
+    }
+    reader.onprogress = (evt) => {
+      if (evt.lengthComputable) {
+        setUploadProgress(Math.round((evt.loaded / evt.total) * 100))
+      }
+    }
+    reader.onload = () => {
+      setUploadProgress(100)
+      setFileValid(true)
+    }
+    reader.onerror = () => {
+      setFileError("Failed to read file")
+      setFileValid(false)
+    }
+    reader.onloadend = () => {
+      setFileLoading(false)
+    }
+    reader.readAsArrayBuffer(f)
   }
 
   return (
@@ -132,22 +189,44 @@ export default function AssignmentDetailsPage() {
                 <input
                   type="file"
                   className="w-full rounded border bg-background p-2 text-sm"
-                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  onChange={handleFileSelect}
                   accept=".pdf,.doc,.docx,.txt,.md,.zip,.rar,.7z,.png,.jpg,.jpeg"
                 />
                 {file && (
                   <p className="text-xs text-muted-foreground">Selected: {file.name} ({Math.round(file.size / 1024)} KB)</p>
                 )}
+                {fileLoading && (
+                  <div className="flex items-center gap-2">
+                    <Progress value={uploadProgress} className="h-2 w-full" />
+                    <span className="text-xs text-muted-foreground w-16 text-right">{uploadProgress}%</span>
+                  </div>
+                )}
+                {!fileLoading && fileValid && (
+                  <p className="text-xs text-green-600">File loaded • Ready to submit</p>
+                )}
                 {fileError && <p className="text-xs text-destructive">{fileError}</p>}
               </div>
 
               <div className="flex gap-2">
-                <Button className="gap-2" onClick={handleQuickSubmit} disabled={submitting}>
+                <Button
+                  className="gap-2"
+                  onClick={handleQuickSubmit}
+                  disabled={submitting || fileLoading || !fileValid || !file}
+                  title={
+                    fileLoading
+                      ? "Reading file..."
+                      : !file
+                      ? "Attach a file first"
+                      : !fileValid
+                      ? "Fix file issues before submitting"
+                      : undefined
+                  }
+                >
                   <Upload className="h-4 w-4" />
                   {submitting ? "Submitting..." : "Submit for Review"}
                 </Button>
                 {action === "submit" && (
-                  <span className="text-xs text-muted-foreground">You opened via Submit — attach your file and notes, then submit.</span>
+                  <span className="text-xs text-muted-foreground">Attach your file and notes, then submit when ready.</span>
                 )}
               </div>
 
