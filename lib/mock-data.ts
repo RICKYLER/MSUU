@@ -1,0 +1,151 @@
+import type { User, Course, Assignment, Enrollment, Submission } from "./types"
+
+export const mockUsers: User[] = [
+  {
+    id: "1",
+    email: "student@msu.edu.ph",
+    password: "student123",
+    role: "student",
+    firstName: "Juan",
+    lastName: "Dela Cruz",
+    studentId: "2024-00001",
+  },
+  {
+    id: "2",
+    email: "teacher@msu.edu.ph",
+    password: "teacher123",
+    role: "teacher",
+    firstName: "Maria",
+    lastName: "Santos",
+    employeeId: "EMP-001",
+  },
+  {
+    id: "3",
+    email: "admin@msu.edu.ph",
+    password: "admin123",
+    role: "admin",
+    firstName: "Pedro",
+    lastName: "Reyes",
+    employeeId: "ADM-001",
+  },
+]
+
+export const mockCourses: Course[] = [
+  {
+    id: "1",
+    code: "CS 101",
+    name: "Introduction to Computer Science",
+    description: "Fundamentals of programming and computer science concepts",
+    teacherId: "2",
+    teacherName: "Maria Santos",
+    schedule: "MWF 9:00-10:00 AM",
+    room: "Room 301",
+    color: "from-blue-500 to-cyan-500",
+    enrolled: 35,
+    capacity: 40,
+  },
+  {
+    id: "2",
+    code: "MATH 201",
+    name: "Calculus I",
+    description: "Differential and integral calculus",
+    teacherId: "2",
+    teacherName: "Maria Santos",
+    schedule: "TTH 1:00-2:30 PM",
+    room: "Room 205",
+    color: "from-purple-500 to-pink-500",
+    enrolled: 30,
+    capacity: 35,
+  },
+  {
+    id: "3",
+    code: "ENG 102",
+    name: "English Composition",
+    description: "Academic writing and communication skills",
+    teacherId: "2",
+    teacherName: "Maria Santos",
+    schedule: "MWF 2:00-3:00 PM",
+    room: "Room 102",
+    color: "from-green-500 to-emerald-500",
+    enrolled: 28,
+    capacity: 30,
+  },
+  {
+    id: "4",
+    code: "PHYS 101",
+    name: "General Physics",
+    description: "Mechanics, heat, and sound",
+    teacherId: "2",
+    teacherName: "Maria Santos",
+    schedule: "TTH 10:00-11:30 AM",
+    room: "Lab 401",
+    color: "from-orange-500 to-red-500",
+    enrolled: 25,
+    capacity: 30,
+  },
+]
+
+export const mockEnrollments: Enrollment[] = [
+  { id: "1", studentId: "1", courseId: "1", enrolledAt: new Date("2024-01-15") },
+  { id: "2", studentId: "1", courseId: "2", enrolledAt: new Date("2024-01-15") },
+  { id: "3", studentId: "1", courseId: "3", enrolledAt: new Date("2024-01-15") },
+  { id: "4", studentId: "1", courseId: "4", enrolledAt: new Date("2024-01-15") },
+]
+
+export const mockAssignments: Assignment[] = [
+  {
+    id: "1",
+    courseId: "1",
+    title: "Programming Assignment 1",
+    description: "Create a simple calculator program",
+    dueDate: new Date("2024-12-20"),
+    points: 100,
+    type: "assignment",
+  },
+  {
+    id: "2",
+    courseId: "1",
+    title: "Midterm Exam",
+    description: "Comprehensive exam covering chapters 1-5",
+    dueDate: new Date("2024-12-18"),
+    points: 150,
+    type: "exam",
+  },
+  {
+    id: "3",
+    courseId: "2",
+    title: "Calculus Problem Set 3",
+    description: "Integration problems",
+    dueDate: new Date("2024-12-19"),
+    points: 50,
+    type: "assignment",
+  },
+]
+
+export const mockSubmissions: Submission[] = [
+  {
+    id: "sub-1",
+    assignmentId: "1",
+    studentId: "1",
+    submittedAt: new Date("2024-12-15"),
+    grade: 95,
+    feedback: "Excellent work! Your code is well-structured and efficient.",
+    status: "graded",
+  },
+  {
+    id: "sub-2",
+    assignmentId: "2",
+    studentId: "1",
+    submittedAt: new Date("2024-12-17"),
+    grade: 88,
+    feedback: "Good understanding of the concepts. Minor improvements needed.",
+    status: "graded",
+  },
+  {
+    id: "sub-3",
+    assignmentId: "3",
+    studentId: "1",
+    submittedAt: new Date("2024-12-19"),
+    status: "submitted",
+  },
+]

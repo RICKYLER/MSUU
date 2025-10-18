@@ -1,0 +1,108 @@
+// Prisma schema for MSU ELMS auth and core models
+// Database: MySQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  password   String
+  role       UserRole
+  firstName  String
+  lastName   String
+  studentId  String?  @unique
+  employeeId String?  @unique
+  avatar     String?
+
+  // Relations
+  coursesTaught Course[]      @relation("TeacherCourses")
+  enrollments   Enrollment[]  @relation("UserEnrollments")
+  submissions   Submission[]  @relation("UserSubmissions")
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+enum UserRole {
+  student
+  teacher
+  admin
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  description String
+  teacherId   String
+  teacher     User     @relation("TeacherCourses", fields: [teacherId], references: [id])
+  schedule    String
+  room        String
+  color       String
+  capacity    Int
+  enrolled    Int      @default(0)
+
+  // Relations
+  enrollments Enrollment[] @relation("CourseEnrollments")
+  assignments Assignment[] @relation("CourseAssignments")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Enrollment {
+  id         String   @id @default(cuid())
+  studentId  String
+  courseId   String
+  student    User     @relation("UserEnrollments", fields: [studentId], references: [id])
+  course     Course   @relation("CourseEnrollments", fields: [courseId], references: [id])
+  enrolledAt DateTime @default(now())
+}
+
+model Assignment {
+  id          String   @id @default(cuid())
+  courseId    String
+  course      Course   @relation("CourseAssignments", fields: [courseId], references: [id])
+  title       String
+  description String
+  dueDate     DateTime
+  points      Int
+  type        AssignmentType
+
+  // Relations
+  submissions Submission[] @relation("AssignmentSubmissions")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum AssignmentType {
+  assignment
+  quiz
+  exam
+}
+
+model Submission {
+  id           String    @id @default(cuid())
+  assignmentId String
+  studentId    String
+  assignment   Assignment @relation("AssignmentSubmissions", fields: [assignmentId], references: [id])
+  student      User       @relation("UserSubmissions", fields: [studentId], references: [id])
+  submittedAt  DateTime   @default(now())
+  grade        Int?
+  feedback     String?
+  status       SubmissionStatus
+}
+
+enum SubmissionStatus {
+  submitted
+  graded
+  late
+}
