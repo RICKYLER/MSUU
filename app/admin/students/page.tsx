@@ -1,8 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { getCurrentUser } from "@/lib/auth"
+import { useRouter, useSearchParams } from "next/navigation"
+import { getCurrentUser } from "@/lib/api/auth.api"
 import { AdminSidebar } from "@/components/admin-sidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -11,26 +11,58 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, Mail, MoreVertical } from "lucide-react"
 
-const students = [
-  { id: "1", name: "Juan Dela Cruz", studentId: "2024-00001", email: "juan@msu.edu.ph", courses: 4, grade: 92 },
-  { id: "2", name: "Maria Garcia", studentId: "2024-00002", email: "maria@msu.edu.ph", courses: 3, grade: 88 },
-  { id: "3", name: "Jose Rizal", studentId: "2024-00003", email: "jose@msu.edu.ph", courses: 4, grade: 95 },
-  { id: "4", name: "Ana Santos", studentId: "2024-00004", email: "ana@msu.edu.ph", courses: 3, grade: 90 },
-  { id: "5", name: "Pedro Cruz", studentId: "2024-00005", email: "pedro@msu.edu.ph", courses: 4, grade: 85 },
-]
+interface StudentSummary {
+  id: string
+  name: string
+  email: string
+  studentId?: string
+  avatar?: string
+  courses: number
+  avgGrade: number | null
+}
 
 export default function AdminStudentsPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [loading, setLoading] = useState(true)
+  const [students, setStudents] = useState<StudentSummary[]>([])
+  const [query, setQuery] = useState<string>(searchParams.get("q") || "")
+  const [error, setError] = useState<string>("")
+
+  const fetchStudents = async (q: string) => {
+    try {
+      setError("")
+      const res = await fetch(`/api/admin/students${q ? `?q=${encodeURIComponent(q)}` : ""}`)
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        setError(data.error || "Failed to load students")
+        return
+      }
+      setStudents(data.students || [])
+    } catch {
+      setError("Network error")
+    }
+  }
 
   useEffect(() => {
     const user = getCurrentUser()
     if (!user || user.role !== "admin") {
-      router.push("/login")
+      router.push("/login?role=admin")
       return
     }
     setLoading(false)
-  }, [router])
+    fetchStudents(query)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const handleSearchSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const params = new URLSearchParams(searchParams)
+    if (query) params.set("q", query)
+    else params.delete("q")
+    router.push(`/admin/students?${params.toString()}`)
+    fetchStudents(query)
+  }
 
   if (loading) {
     return <div className="flex h-screen items-center justify-center">Loading...</div>
@@ -51,49 +83,60 @@ export default function AdminStudentsPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>All Students</CardTitle>
-                <div className="relative w-64">
+                <form className="relative w-64" onSubmit={handleSearchSubmit}>
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input placeholder="Search students..." className="pl-9" />
-                </div>
+                  <Input
+                    placeholder="Search students..."
+                    className="pl-9"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                  />
+                </form>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {students.map((student) => (
-                  <div key={student.id} className="flex items-center gap-4 rounded-lg border border-border p-4">
-                    <Avatar className="h-12 w-12">
-                      <AvatarFallback className="bg-primary text-primary-foreground">
-                        {student.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <p className="font-medium">{student.name}</p>
-                      <p className="text-sm text-muted-foreground">{student.studentId}</p>
+              {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
+              {students.length === 0 && !error ? (
+                <p className="text-sm text-muted-foreground">No students found.</p>
+              ) : (
+                <div className="space-y-3">
+                  {students.map((student) => (
+                    <div key={student.id} className="flex items-center gap-4 rounded-lg border border-border p-4">
+                      <Avatar className="h-12 w-12">
+                        <AvatarFallback className="bg-primary text-primary-foreground">
+                          {student.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <p className="font-medium">{student.name}</p>
+                        <p className="text-sm text-muted-foreground">{student.studentId || "No Student ID"}</p>
+                        <p className="text-xs text-muted-foreground">{student.email}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm font-medium">{student.courses} Courses</p>
+                        <p className="text-xs text-muted-foreground">Enrolled</p>
+                      </div>
+                      <div className="text-center">
+                        <Badge variant={student.avgGrade !== null && student.avgGrade >= 90 ? "default" : "secondary"} className="text-sm">
+                          {student.avgGrade !== null ? `${student.avgGrade}%` : "N/A"}
+                        </Badge>
+                        <p className="text-xs text-muted-foreground">Avg Grade</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="icon" title="Email">
+                          <Mail className="h-4 w-4" />
+                        </Button>
+                        <Button variant="outline" size="icon" title="More">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="text-center">
-                      <p className="text-sm font-medium">{student.courses} Courses</p>
-                      <p className="text-xs text-muted-foreground">Enrolled</p>
-                    </div>
-                    <div className="text-center">
-                      <Badge variant={student.grade >= 90 ? "default" : "secondary"} className="text-sm">
-                        {student.grade}%
-                      </Badge>
-                      <p className="text-xs text-muted-foreground">Avg Grade</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="icon">
-                        <Mail className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="icon">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

@@ -17,11 +17,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // Guard Vercel Analytics to avoid insights script errors on localhost
+  const enableAnalytics = process.env.NODE_ENV === "production" && process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === "true"
+
   return (
     <html lang="en" className="dark">
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
         <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
-        <Analytics />
+        {enableAnalytics && <Analytics />}
       </body>
     </html>
   )

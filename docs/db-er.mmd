@@ -1,0 +1,65 @@
+erDiagram
+    USER ||--o{ COURSE : teaches
+    USER ||--o{ ENROLLMENT : enrolls
+    COURSE ||--o{ ENROLLMENT : has
+    COURSE ||--o{ ASSIGNMENT : contains
+    ASSIGNMENT ||--o{ SUBMISSION : receives
+    USER ||--o{ SUBMISSION : submits
+
+    USER {
+      string id PK
+      string email UK
+      string password
+      enum role
+      string firstName
+      string lastName
+      string studentId UK
+      string employeeId UK
+      string avatar
+      datetime createdAt
+      datetime updatedAt
+    }
+
+    COURSE {
+      string id PK
+      string code UK
+      string name
+      string description
+      string teacherId FK
+      string schedule
+      string room
+      string color
+      int capacity
+      int enrolled
+      datetime createdAt
+      datetime updatedAt
+    }
+
+    ENROLLMENT {
+      string id PK
+      string studentId FK
+      string courseId FK
+      datetime enrolledAt
+    }
+
+    ASSIGNMENT {
+      string id PK
+      string courseId FK
+      string title
+      string description
+      datetime dueDate
+      int points
+      enum type
+      datetime createdAt
+      datetime updatedAt
+    }
+
+    SUBMISSION {
+      string id PK
+      string assignmentId FK
+      string studentId FK
+      datetime submittedAt
+      int grade
+      string feedback
+      enum status
+    }

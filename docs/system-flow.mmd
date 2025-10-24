@@ -1,0 +1,35 @@
+flowchart TD
+  A[Open app] --> B{Logged in?}
+  B -- No --> C[/Login page/]
+  C --> D[Authenticate user]
+  D -->|valid| E[Save current user]
+  D -->|invalid| C
+
+  E --> F{Role}
+  F -->|student| G[Student Dashboard]
+  F -->|teacher| H[Teacher Dashboard]
+  F -->|admin| I[Admin Dashboard]
+
+  G --> J[getStudentAssignments]
+  J --> K[Assignment Detail]
+  K --> L[getAssignmentById]
+  K --> M[getAssignmentSubmissions]
+  K --> N[Submit for Review]
+
+  N --> O[submitAssignment]
+  O --> P[Append to mockSubmissions]
+  P --> Q[Refresh list]
+  Q --> R{Grade undefined}
+  R -- Yes --> S[Grade pending]
+  R -- No --> T[Grade number]
+  S --> U[Feedback none]
+  T --> U
+
+  H --> V[View assignment submissions]
+  V --> W{Grade submission}
+  W -- Yes --> X[Future update submission]
+  X --> Y[Set grade feedback status graded]
+  Y --> Z[Student sees updated grade]
+
+  I --> AA[Manage admin pages]
+  AA --> AB[Future CRUD via API and Prisma]

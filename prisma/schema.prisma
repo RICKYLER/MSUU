@@ -1,13 +1,13 @@
-// Prisma schema for MSU ELMS auth and core models
-// Database: MySQL
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+  // For non-prisma URLs, keep DIRECT_DATABASE_URL and directUrl if needed
+  // directUrl = env("DIRECT_DATABASE_URL")
 }
 
 model User {
@@ -21,13 +21,13 @@ model User {
   employeeId String?  @unique
   avatar     String?
 
-  // Relations
   coursesTaught Course[]      @relation("TeacherCourses")
   enrollments   Enrollment[]  @relation("UserEnrollments")
   submissions   Submission[]  @relation("UserSubmissions")
 
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  deletedAt  DateTime?
 }
 
 enum UserRole {
@@ -49,10 +49,8 @@ model Course {
   capacity    Int
   enrolled    Int      @default(0)
 
-  // Relations
   enrollments Enrollment[] @relation("CourseEnrollments")
   assignments Assignment[] @relation("CourseAssignments")
-
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -76,12 +74,11 @@ model Assignment {
   points      Int
   type        AssignmentType
 
-  // Relations
   submissions Submission[] @relation("AssignmentSubmissions")
-
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
 
 enum AssignmentType {
   assignment

@@ -46,7 +46,6 @@ export async function submitAssignment(assignmentId: string, studentId: string, 
     grade: undefined,
   }
 
-  // For mock mode, append to in-memory list so subsequent fetches include it
   mockSubmissions.push({ ...newSubmission })
 
   return newSubmission

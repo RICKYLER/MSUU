@@ -1,0 +1,11 @@
+flowchart TD
+  A[Student clicks Submit] --> B[Create Submission]
+  B --> C[Set status submitted, grade null, feedback null]
+  C --> D[Student sees Grade pending, Feedback none]
+  D --> E[Teacher reviews]
+  E --> F{On time}
+  F -- No --> G[Set status late]
+  F -- Yes --> H[Keep status submitted]
+  E --> I[Teacher sets grade and feedback]
+  I --> J[Update status graded]
+  J --> K[Student sees Grade number, Feedback text]

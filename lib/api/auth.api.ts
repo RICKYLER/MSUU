@@ -40,7 +40,7 @@ export async function loginUser(credentials: LoginCredentials): Promise<AuthResp
       return { success: false, error: data.error || "Login failed" }
     }
 
-    // Store user for client-side convenience; server also sets cookie
+
     if (typeof window !== "undefined" && data.user) {
       localStorage.setItem("currentUser", JSON.stringify(data.user))
     }
@@ -50,11 +50,6 @@ export async function loginUser(credentials: LoginCredentials): Promise<AuthResp
     return { success: false, error: "Network error" }
   }
 }
-
-/**
- * Logout current user
- * For cookie-based auth, you may add an API route to clear cookie.
- */
 export async function logoutUser(): Promise<void> {
   localStorage.removeItem("currentUser")
 }
@@ -80,3 +75,5 @@ export function hasRole(role: UserRole): boolean {
   const user = getCurrentUser()
   return user?.role === role
 }
+ 
+
